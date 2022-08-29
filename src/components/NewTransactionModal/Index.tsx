@@ -1,8 +1,11 @@
-import { useState } from "react";
-import Modal from "react-modal";
+import { FormEvent, useState, useContext } from "react";
+import Modal from "react-modal"; 
+import { TransactionsContext } from "../../TransactionsContext";
+
 import CloseImg from '../../assets/close.svg';
 import IncomeIgm from '../../assets/income.svg';
 import OutcomeImg from '../../assets/outcome.svg';
+
 import { 
   Container, 
   TransactionTypeContainer, 
@@ -16,7 +19,28 @@ interface NewTransactionModalProps {
 
 export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModalProps) {
   const [type, setType] = useState('deposit');
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState(0);
+  const [category, setCategory] = useState('');
+  const {createTransaction} = useContext(TransactionsContext);
 
+  async function handleCreateNewTransaction(event: FormEvent) {
+    event.preventDefault();
+
+    await createTransaction({
+      title,
+      amount,
+      category,
+      type,
+    });
+
+    setTitle('');
+    setAmount(0);
+    setCategory('');
+    setType('deposit');
+    
+    onRequestClose();
+  }
 
   return(
     <Modal
@@ -33,14 +57,18 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
           onClick={onRequestClose}
          />
       </button>
-      <Container>
+      <Container onSubmit={handleCreateNewTransaction}>
         <h2>Cadastrar transação</h2>
-        <input 
+        <input  
           placeholder="Título"
+          value={title}
+          onChange={event => setTitle(event.target.value)}
         />
         <input 
           type="number"
           placeholder="Valor"
+          value={amount}
+          onChange={event => setAmount(Number(event.target.value))}
         />
 
         <TransactionTypeContainer>
@@ -48,6 +76,7 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
             type="button"
             onClick={() => setType('deposit')}
             isActive={type === 'deposit'}
+            activeColor="green"
           >
             <img src={IncomeIgm} alt="Entrada" />
             <span>Entrada</span>
@@ -56,6 +85,7 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
             type="button"
             onClick={() => setType('withdraw')}
             isActive={type === 'withdraw'}
+            activeColor="red"
           >
             <img src={OutcomeImg} alt="Saída" />
             <span>Saída</span>
@@ -64,6 +94,8 @@ export function NewTransactionModal({isOpen, onRequestClose}: NewTransactionModa
 
         <input 
           placeholder="Categoria"
+          value={category}
+          onChange={event => setCategory(event.target.value)}
         />
         <button type="submit">Cadastrar</button>
       </Container>
